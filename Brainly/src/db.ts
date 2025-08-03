@@ -6,7 +6,7 @@ env.config();
 
 mongoose
   .connect(
-    "mongodb+srv://navneetpathak1909:0f31BrPLY3C6aRW0@cluster0.hiigbdy.mongodb.net/"
+    "mongodb+srv://put yout url/"
   )
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
