@@ -6,7 +6,7 @@ env.config();
 
 mongoose
   .connect(
-    "mongodb://localhost:27017/"
+    "mongodb+srv://navneetpathak1909:0f31BrPLY3C6aRW0@cluster0.hiigbdy.mongodb.net/"
   )
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
@@ -27,9 +27,17 @@ const contentSchema = new Schema({
   title: String,
   link: String,
   tags: [{ type: mongoose.Types.ObjectId, ref: "Tag" }],
+  type: String,
   userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
 });
 
+
+const linkSchema = new Schema({
+  hash: {type: String, unique: true},
+  userId: { type: mongoose.Types.ObjectId, ref: "User", required: true},
+})
+
 export const contentModel = model('Content', contentSchema);
 
+export const linkModel = model("Links", linkSchema);
 

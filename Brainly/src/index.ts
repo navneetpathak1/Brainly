@@ -2,13 +2,16 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { contentModel, userModel } from "./db";
+import { contentModel, linkModel, userModel } from "./db";
 import { userMiddleware } from "./middleware";
-import { json } from "body-parser";
+import crypto from "crypto";
+import { link } from "fs";
+import cors from "cors"
 
 dotenv.config();
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/api/v1/signup", async (req, res) => {
   try {
@@ -41,7 +44,7 @@ app.post("/api/v1/signup", async (req, res) => {
 
     res.status(201).json({
       message: "User created successfully",
-      token 
+      token,
     });
   } catch (err) {
     console.error(err);
@@ -63,7 +66,10 @@ app.post("/api/v1/signin", async (req, res) => {
       return res.status(404).json({ message: "User does not exist" });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, existingUser.password as string);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password as string
+    );
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -77,19 +83,17 @@ app.post("/api/v1/signin", async (req, res) => {
 
     return res.status(200).json({
       message: "Login successful",
-      token
+      token,
     });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-
 app.post("/api/v1/content", userMiddleware, async (req, res) => {
   try {
-    const { link, title, tags } = req.body;
+    const { link, title, tags, type } = req.body;
 
     if (!link || !title) {
       return res.status(400).json({ message: "Link and title are required" });
@@ -97,14 +101,15 @@ app.post("/api/v1/content", userMiddleware, async (req, res) => {
 
     const content = await contentModel.create({
       link,
+      type,
       title,
       userId: req.userId,
-      tags: tags || [] 
+      tags: tags || [],
     });
 
     res.status(201).json({
       message: "Content added successfully",
-      content
+      content,
     });
   } catch (err) {
     console.error(err);
@@ -118,7 +123,9 @@ app.get("/api/v1/content", userMiddleware, async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    const content = await contentModel.find({ userId: req.userId }).populate("userId", "userName");
+    const content = await contentModel
+      .find({ userId: req.userId })
+      .populate("userId", "userName");
 
     res.json({
       message: "Content fetched successfully",
@@ -129,7 +136,6 @@ app.get("/api/v1/content", userMiddleware, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 app.delete("/api/v1/content", userMiddleware, async (req, res) => {
   try {
@@ -145,7 +151,9 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
     });
 
     if (!deletedContent) {
-      return res.status(404).json({ message: "Content not found or not authorized" });
+      return res
+        .status(404)
+        .json({ message: "Content not found or not authorized" });
     }
 
     res.json({ message: "Content deleted successfully" });
@@ -155,9 +163,53 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
   }
 });
 
-app.post("/api/v1/brain/share", (req, res) => {});
+app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
+  try {
+    const { share } = req.body;
 
-app.get("/api/v1/brain/:shareLink", (req, res) => {});
+    if (share) {
+      const existingLink = await linkModel.findOne({ userId: req.userId });
+
+      if (existingLink) {
+        return res.json({ hash: existingLink.hash });
+      }
+
+      const hash = crypto.randomBytes(5).toString("hex"); // 10-char random hash
+      await linkModel.create({ userId: req.userId, hash });
+
+      return res.json({ hash });
+    } else {
+      await linkModel.deleteOne({ userId: req.userId });
+      return res.json({ message: "Sharable link removed" });
+    }
+  } catch (err) {
+    console.error("Error updating sharable link:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.get("/api/v1/brain/:shareLink", async (req, res) => {
+  try {
+    const hash = req.params.shareLink;
+
+    const link = await linkModel.findOne({ hash });
+
+    if (!link) {
+      return res.status(404).json({ message: "Sorry, incorrect input" });
+    }
+
+    const content = await contentModel.find({ userId: link.userId });
+    const user = await userModel.findOne({ _id: link.userId });
+
+    return res.status(200).json({
+      username: user?.userName,
+      content,
+    });
+  } catch (err) {
+    console.error("Error fetching sharable link:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 app.listen(3000, () => {
   console.log("Server in running");

@@ -36,12 +36,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.contentModel = exports.userModel = void 0;
+exports.linkModel = exports.contentModel = exports.userModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 mongoose_1.default
-    .connect("")
+    .connect("mongodb+srv://navneetpathak1909:0f31BrPLY3C6aRW0@cluster0.hiigbdy.mongodb.net/")
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.error("MongoDB connection error:", err));
 const userSchema = new mongoose_1.Schema({
@@ -58,6 +58,12 @@ const contentSchema = new mongoose_1.Schema({
     title: String,
     link: String,
     tags: [{ type: mongoose_1.default.Types.ObjectId, ref: "Tag" }],
+    type: String,
+    userId: { type: mongoose_1.default.Types.ObjectId, ref: "User", required: true },
+});
+const linkSchema = new mongoose_1.Schema({
+    hash: { type: String, unique: true },
     userId: { type: mongoose_1.default.Types.ObjectId, ref: "User", required: true },
 });
 exports.contentModel = (0, mongoose_1.model)('Content', contentSchema);
+exports.linkModel = (0, mongoose_1.model)("Links", linkSchema);
