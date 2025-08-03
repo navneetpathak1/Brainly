@@ -1,4 +1,4 @@
-# 🧠 Brain Share App
+# Brain Share App
 
 A MERN-stack application that allows users to:  
 - Sign up & Sign in securely using JWT  
@@ -8,7 +8,7 @@ A MERN-stack application that allows users to:
 
 ---
 
-## 🚀 Features
+## Features
 - **Authentication:** Secure login/signup using JWT tokens.
 - **Content Management:** Add, view, and organize YouTube and Twitter embeds.
 - **Shareable Links:** Generate a public link to share your content.
@@ -17,7 +17,7 @@ A MERN-stack application that allows users to:
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Frontend
 - React (TypeScript)
@@ -33,5 +33,3 @@ A MERN-stack application that allows users to:
 - Bcrypt for password hashing
 
 ---
-
-## 📂 Folder Structure
