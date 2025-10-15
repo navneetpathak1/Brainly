@@ -41,7 +41,7 @@ const mongoose_1 = __importStar(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 mongoose_1.default
-    .connect("mongodb+srv://navneetpathak1909:0f31BrPLY3C6aRW0@cluster0.hiigbdy.mongodb.net/")
+    .connect(process.env.MONGODB_URL || "")
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.error("MongoDB connection error:", err));
 const userSchema = new mongoose_1.Schema({
